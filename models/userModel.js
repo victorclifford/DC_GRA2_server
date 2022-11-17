@@ -93,7 +93,7 @@ userSchema.methods.getSignedToken = async function () {
   });
 };
 //method to generate the reset password token
-userSchema.methods.getResetPassword = function () {
+userSchema.methods.getResetToken = function () {
   const resetToken = crypto.randomBytes(20).toString("hex");
 
   //now hashing the generated token and save to the user schema

@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const User = require("../models/userModel");
 const ErrorResponse = require("../utils/errorResponse");
 const config = require("../utils/config");
@@ -66,7 +67,7 @@ const forgotPassword = async (req, res, next) => {
     if (!user) {
       return next(new ErrorResponse("Unable to send email!", 404));
     }
-    const resetToken = await user.getResetPassword();
+    const resetToken = await user.getResetToken();
 
     await user.save();
 
@@ -74,8 +75,8 @@ const forgotPassword = async (req, res, next) => {
     const resetURL = `${config.HOMEPAGE}/${resetToken}`;
     const message = `
     <h1>You have requested a password reset</h1>
-    <p>Click on the link to reset your password again</p>
-    <a href=${resetURL} clicktracking=off>click here to reset your password</a>
+    <p>Click on the link to reset your password</p>
+    <a href=${resetURL} clicktracking=off>click here to reset your password</a> <p>${resetURL}</p>
   `;
     try {
       sendSingleEmail({
@@ -102,8 +103,40 @@ const forgotPassword = async (req, res, next) => {
   }
 };
 
+//--------------------reset password --------------
+const resetPassword = async (req, res, next) => {
+  const resetPasswordToken = crypto
+    .createHash("sha256")
+    .update(req.params.resettoken)
+    .digest("hex");
+
+  try {
+    const user = await User.findOne({
+      resetPasswordToken,
+      resetPasswordExpiration: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return next(new ErrorResponse("invalid Reset Token!", 400));
+    }
+
+    user.password = req.body.password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpiration = undefined;
+
+    await user.save();
+    return res.status(201).json({
+      success: true,
+      message: "Password Reset Successful",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   signupUser,
   loginUser,
   forgotPassword,
+  resetPassword,
 };

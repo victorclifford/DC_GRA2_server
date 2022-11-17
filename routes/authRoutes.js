@@ -3,16 +3,17 @@ const {
   signupUser,
   loginUser,
   forgotPassword,
+  resetPassword,
 } = require("../controllers/authController");
 // const { authorizeUser } = require("../middlewares/authorizations");
 
 const router = express.Router();
 
-//-----------SIGNUP------------------
+//SIGNUP
 
 router.post("/signup", signupUser);
 
-//---------LOGIN------------
+//LOGIN
 
 router.post("/login", loginUser);
 
@@ -20,4 +21,6 @@ router.post("/login", loginUser);
 
 router.post("/forgotpassword", forgotPassword);
 
+//reset password
+router.put("/resetpassword/:resettoken", resetPassword);
 module.exports = router;
